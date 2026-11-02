@@ -2,7 +2,13 @@
 
 日期：2026-11-02，Asia/Shanghai。项目：`the repository root`。
 
-## 最新交付：原生应用安装与纯数字叠加（2026-11-02）
+## 最新修复：关闭窗口后从 Msgbox 重新显示（2026-11-02）
+
+原运行分支仅执行 NSRunningApplication.activate，不能要求聊天应用重建已关闭的窗口。现在所有列表点击统一使用 NSWorkspace.openApplication，复用已有实例并激活，保留安装校验、异步错误处理和明确的请求提示。未新增权限或读取聊天窗口，未改轮询/省电逻辑。
+
+XCTest 16/16 通过，新增覆盖标准 reopen 恢复已关闭窗口；Release build/analyze、签名和隐私审查通过。更新 /Applications/Msgbox.app 后，用户先关闭三款聊天应用主窗口但保留进程；通过 Msgbox 逐一点击微信、QQ、Telegram，用户明确确认“三款都恢复了”。角标读取授权已恢复，实时计数正常。证据 logs/tests-reopen.txt、logs/build-reopen-release.log、logs/security-audit-reopen.txt。特殊窗口及所有最小化状态未在本次全面复测，最终显示行为仍由各聊天应用决定。
+
+## 原生应用安装与纯数字叠加交付记录（2026-11-02）
 
 正式应用位于 `/Applications/Msgbox.app`，有与菜单栏同源的双气泡应用图标。菜单栏固定 38 pt；无未读时仅显示图形，有未读时直接在图形右上角叠加数字，无底色或边框，1000 起显示 999+，列表不截断系统可提供的数字。原生登录时启动开关已验证开/关，当前用户选择开启。首次安装不会自行开启，登录启动保持静默；物理重新登录尚未测试。
 

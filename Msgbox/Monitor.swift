@@ -140,20 +140,15 @@ final class Monitor: ObservableObject {
             refresh()
             return
         }
-        if let running = NSRunningApplication.runningApplications(withBundleIdentifier: app.id).first {
-            running.unhide()
-            let accepted = running.activate(options: [.activateAllWindows])
-            notice = accepted ? "已请求切换到\(app.name)。最小化或特殊窗口可能需要手动恢复。" : "系统未接受激活请求，请从 Dock 手动打开\(app.name)。"
-        } else {
-            let configuration = NSWorkspace.OpenConfiguration()
-            configuration.activates = true
-            configuration.createsNewApplicationInstance = false
-            NSWorkspace.shared.openApplication(at: url, configuration: configuration) { [weak self] _, error in
-                Task { @MainActor in
-                    self?.notice = error == nil ? "已请求打开\(app.name)。窗口显示由聊天应用决定。" : "无法打开\(app.name)，请从 Finder 检查应用。"
-                    self?.discoveryDate = .distantPast
-                    self?.refresh()
-                }
+        // LaunchServices also sends the reopen request that activate() alone does not.
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        configuration.createsNewApplicationInstance = false
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { [weak self] _, error in
+            Task { @MainActor in
+                self?.notice = error == nil ? "已请求打开或重新显示\(app.name)。窗口响应由聊天应用决定。" : "无法打开\(app.name)，请从 Finder 检查应用。"
+                self?.discoveryDate = .distantPast
+                self?.refresh()
             }
         }
     }

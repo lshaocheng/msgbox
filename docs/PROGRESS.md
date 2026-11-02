@@ -1,5 +1,12 @@
 # 进度
 
+## 最新：关闭聊天窗口后重新打开（2026-11-02）
+
+- 根因：运行中的应用只调用 activate，未发送系统重新打开请求，关闭窗口后无法重建窗口。
+- 删除运行/未运行的分支，统一使用 NSWorkspace.openApplication，保留 activates=true、createsNewApplicationInstance=false、安装校验和异步错误提示。没有新增权限、读取聊天窗口或改动轮询。
+- 补充关闭窗口后响应标准 reopen 的回归，XCTest 16/16 通过，Release build/analyze 与签名/隐私检查通过。见 logs/tests-reopen.txt、logs/build-reopen-release.log、logs/security-audit-reopen.txt。
+- 已更新 /Applications/Msgbox.app；用户先关闭微信、QQ、Telegram 主窗口并保留进程，修复版列表逐一点击后，用户确认“三款都恢复了”。已恢复同一 Msgbox 的既有角标授权，实时读数正常。
+
 ## 最新：应用安装、叠加数字与省电检查（2026-11-02）
 
 - 菜单栏固定 38 pt，使用原生按钮和固定 32×22 pt 模板图片。数字直接叠在右上角，无底色、边框或胶囊；0 不绘制数字，1000 起显示 999+。展开列表保留完整可读数量和合计。

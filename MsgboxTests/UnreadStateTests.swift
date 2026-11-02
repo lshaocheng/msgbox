@@ -176,6 +176,10 @@ final class UnreadStateTests: XCTestCase {
         XCTAssertTrue(host.rootView.monitor === delegate.monitor)
         XCTAssertTrue(delegate.applicationShouldHandleReopen(NSApp, hasVisibleWindows: false))
         XCTAssertTrue(window.isVisible)
+        window.close()
+        XCTAssertFalse(window.isVisible)
+        XCTAssertTrue(delegate.applicationShouldHandleReopen(NSApp, hasVisibleWindows: false))
+        XCTAssertTrue(window.isVisible, "A standard reopen must show a previously closed window")
         XCTAssertTrue(delegate.applicationShouldHandleReopen(NSApp, hasVisibleWindows: true))
         XCTAssertTrue(window === delegate.listWindow, "Reopen must not create duplicate windows")
     }
