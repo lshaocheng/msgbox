@@ -140,17 +140,88 @@ final class UnreadStateTests: XCTestCase {
     func testPopoverLayoutCanBeCreatedRepeatedly() {
         let monitor = Monitor()
         defer { monitor.stop() }
+        monitor.apps = ChatApp.supported
         for i in 0..<20 {
             monitor.trusted = i.isMultiple(of: 2)
             monitor.apps[0].state = .unread(12)
             monitor.apps[1].state = .permissionRequired
             monitor.apps[2].state = .unknown("Dock 角标不可读取")
-            let host = NSHostingView(rootView: PopoverView(monitor: monitor))
+            let host = NSHostingView(rootView: PopoverView(monitor: monitor, onOpenSettings: {}))
             let size = host.fittingSize
             XCTAssertEqual(size.width, 350, accuracy: 1)
             XCTAssertGreaterThan(size.height, 150)
             XCTAssertLessThan(size.height, 800)
         }
+    }
+
+    @MainActor
+    func testAppSelectionFiltersTotalsAndPersistsIncludingEmptySelection() throws {
+        let suite = "MsgboxTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let monitor = Monitor(defaults: defaults)
+        defer { monitor.stop() }
+        monitor.powerChanged(NSWorkspace.willSleepNotification)
+        XCTAssertEqual(monitor.apps.map(\.id), ChatApp.supported.map(\.id))
+        for i in monitor.apps.indices { monitor.apps[i].state = .unread(i + 1) }
+        let telegram = ChatApp.supported[2]
+        monitor.setEnabled(false, for: telegram)
+        XCTAssertFalse(monitor.isEnabled(telegram))
+        XCTAssertFalse(monitor.sortedApps.contains { $0.id == telegram.id })
+        XCTAssertEqual(monitor.totalLabel, "3")
+        let restored = Monitor(defaults: defaults)
+        defer { restored.stop() }
+        XCTAssertEqual(restored.apps.map(\.id), Array(ChatApp.supported.prefix(2)).map(\.id))
+        for app in ChatApp.supported { monitor.setEnabled(false, for: app) }
+        XCTAssertTrue(monitor.apps.isEmpty)
+        XCTAssertEqual(monitor.totalLabel, "0")
+        let empty = Monitor(defaults: defaults)
+        defer { empty.stop() }
+        XCTAssertTrue(empty.apps.isEmpty, "An empty selection must survive restarting")
+        monitor.setEnabled(true, for: telegram)
+        XCTAssertEqual(monitor.apps.map(\.id), [telegram.id])
+        XCTAssertEqual(monitor.apps.first?.state, .unknown("等待检测"), "Re-enabling must not reuse an old count")
+        monitor.setEnabled(false, for: ChatApp(id: "unsupported", name: "Unsupported"))
+        XCTAssertEqual(defaults.stringArray(forKey: "disabledAppIDs"), ChatApp.supported.prefix(2).map(\.id).sorted())
+    }
+
+    @MainActor
+    func testSelectionChangeDuringRefreshDiscardsOldResults() async throws {
+        let suite = "MsgboxTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let monitor = Monitor(defaults: defaults)
+        defer { monitor.stop() }
+        monitor.refresh()
+        XCTAssertTrue(monitor.refreshing)
+        for app in ChatApp.supported { monitor.setEnabled(false, for: app) }
+        for _ in 0..<300 {
+            if !monitor.refreshing { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertFalse(monitor.refreshing)
+        XCTAssertTrue(monitor.apps.isEmpty)
+        XCTAssertEqual(monitor.totalLabel, "0")
+    }
+
+    @MainActor
+    func testSettingsWindowSharesMonitorAndCanBeReopened() {
+        let delegate = AppDelegate()
+        defer { delegate.monitor.stop(); delegate.settingsWindow.close() }
+        let window = delegate.settingsWindow
+        XCTAssertEqual(window.title, "设置 · Msgbox")
+        XCTAssertFalse(window.isReleasedWhenClosed)
+        guard let host = window.contentViewController as? NSHostingController<SettingsView> else {
+            return XCTFail("Settings must use the native settings view")
+        }
+        XCTAssertTrue(host.rootView.monitor === delegate.monitor)
+        XCTAssertEqual(host.view.fittingSize.width, 400, accuracy: 1)
+        delegate.showSettings()
+        XCTAssertTrue(window.isVisible)
+        window.close()
+        delegate.showSettings()
+        XCTAssertTrue(window.isVisible)
+        XCTAssertTrue(window === delegate.settingsWindow)
     }
 
     @MainActor

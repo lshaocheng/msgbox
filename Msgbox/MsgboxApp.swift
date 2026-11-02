@@ -20,7 +20,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "聊天未读 · Msgbox"
         window.isReleasedWhenClosed = false
-        window.contentViewController = NSHostingController(rootView: PopoverView(monitor: monitor))
+        window.contentViewController = NSHostingController(rootView: PopoverView(monitor: monitor, onOpenSettings: { [weak self] in self?.showSettings() }))
+        window.center()
+        return window
+    }()
+    lazy var settingsWindow: NSWindow = {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 520),
+                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.title = "设置 · Msgbox"
+        window.isReleasedWhenClosed = false
+        window.contentViewController = NSHostingController(rootView: SettingsView(monitor: monitor))
         window.center()
         return window
     }()
@@ -46,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.button?.target = self
         item.button?.action = #selector(toggle)
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: PopoverView(monitor: monitor))
+        popover.contentViewController = NSHostingController(rootView: PopoverView(monitor: monitor, onOpenSettings: { [weak self] in self?.showSettings() }))
         monitor.$apps.sink { [weak self] apps in
             let total = MonitoringPolicy.totalLabel(apps.map(\.state))
             let compact = MonitoringPolicy.totalLabel(apps.map(\.state), compact: true)
@@ -73,6 +82,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         listWindow.makeKeyAndOrderFront(nil)
         NSApp.activate()
         monitor.refresh()
+    }
+
+    func showSettings() {
+        popover.performClose(nil)
+        settingsWindow.makeKeyAndOrderFront(nil)
+        NSApp.activate()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -117,6 +132,7 @@ enum StatusIcon {
 
 struct PopoverView: View {
     @ObservedObject var monitor: Monitor
+    let onOpenSettings: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -126,6 +142,10 @@ struct PopoverView: View {
                 Button { monitor.refresh() } label: { Image(systemName: "arrow.clockwise") }
                     .disabled(monitor.refreshing || monitor.suspended)
                     .help("刷新未读状态").accessibilityLabel("刷新未读状态")
+            }
+            if monitor.apps.isEmpty {
+                Text("尚未选择软件，请在设置中勾选要统计的应用。")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             ForEach(monitor.sortedApps) { app in
                 Button { monitor.open(app) } label: {
@@ -144,13 +164,6 @@ struct PopoverView: View {
                     .accessibilityLabel("\(app.name)，\(app.state.label)，打开应用")
             }
             Divider()
-            Toggle("登录时启动", isOn: Binding(
-                get: { monitor.loginStatus == .enabled || monitor.loginStatus == .requiresApproval },
-                set: { monitor.setLaunchAtLogin($0) }))
-            if monitor.loginStatus == .requiresApproval {
-                Text("自启动等待系统批准").font(.caption).foregroundStyle(.secondary)
-                Button("打开登录项设置…") { monitor.openLoginSettings() }
-            }
             if !monitor.trusted {
                 Text("仅为读取 Dock 角标需要辅助功能权限。不会读取聊天窗口、消息或通知正文。默认不请求权限。")
                     .font(.caption).foregroundStyle(.secondary)
@@ -163,9 +176,48 @@ struct PopoverView: View {
                 Text(monitor.suspended ? "已暂停监控" : monitor.lastUpdated.map { "更新于 \($0.formatted(date: .omitted, time: .standard))" } ?? "等待检测")
                     .font(.caption2).foregroundStyle(.secondary)
                 Spacer()
+                Button("设置…", action: onOpenSettings).keyboardShortcut(",")
                 Button("退出") { NSApp.terminate(nil) }.keyboardShortcut("q")
             }
         }.padding(18).frame(width: 350).fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+struct SettingsView: View {
+    @ObservedObject var monitor: Monitor
+
+    var body: some View {
+        Form {
+            Section("软件筛选") {
+                ForEach(ChatApp.supported) { app in
+                    Toggle(app.name, isOn: Binding(
+                        get: { monitor.isEnabled(app) },
+                        set: { monitor.setEnabled($0, for: app) })).toggleStyle(.checkbox)
+                }
+                Text("只读取、统计和显示勾选的软件。选择自动保存在本机，可随时更改。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("通用") {
+                Toggle("登录时启动", isOn: Binding(
+                    get: { monitor.loginStatus == .enabled || monitor.loginStatus == .requiresApproval },
+                    set: { monitor.setLaunchAtLogin($0) }))
+                if monitor.loginStatus == .requiresApproval {
+                    Text("自启动等待系统批准").font(.caption).foregroundStyle(.secondary)
+                    Button("打开登录项设置…") { monitor.openLoginSettings() }
+                }
+                if let notice = monitor.notice {
+                    Text(notice).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                }
+            }
+            Section("关于 Msgbox") {
+                Text("Msgbox \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
+                    .font(.headline)
+                Text("将微信、QQ 和 Telegram 的 Dock 未读角标汇总到菜单栏，点击列表即可打开对应软件。")
+                Text("完全离线，仅读取 Dock 角标元数据，不读取聊天内容，也不保存未读数量历史。角标检测需要辅助功能权限。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+            .formStyle(.grouped).frame(width: 400, height: 520)
             .onAppear { monitor.refreshLoginStatus() }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 monitor.refreshLoginStatus()

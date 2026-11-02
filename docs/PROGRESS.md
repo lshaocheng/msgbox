@@ -1,5 +1,13 @@
 # 进度
 
+## 最新：设置、软件筛选与关于简介（2026-11-02）
+
+- 菜单栏弹出列表及启动列表底部增加“设置…”（⌘,），复用同一设置窗口。设置提供微信、QQ、Telegram 原生复选框、登录时启动和“关于 Msgbox”的版本/简介/隐私说明。
+- 取消勾选后从 Monitor 的目标数组移除，角标读取、合计、排序和两个列表共同生效；选择用本机 UserDefaults 保存，默认全选，允许全部取消并显示空列表提示。改选会让正在刷新的旧结果失效，重新启用不复用旧数量。
+- Xcode 最终 XCTest 19/19 通过；覆盖筛选/合计/持久化/全空/恢复选择、刷新中改选和设置窗口重开。Release build/analyze、签名/隐私检查、diff 检查通过。日志：logs/tests-settings-xcode.txt、logs/build-settings-release.log、logs/security-audit-settings.txt。命令行测试受 testmanagerd 沙箱限制，由 Xcode 实际执行全部测试通过。
+- 已更新 /Applications/Msgbox.app，签名与 Release 二进制一致；更新前安装包备份于忽略的 build/previous-settings-Msgbox.app。实际 UI 点击验证设置可打开、简介可见，取消 Telegram 后列表移除、退出重启仍隐藏，最后恢复三款全选；登录启动保持原来的开启状态。
+- 当前新版显示需要辅助功能权限，未修改系统权限。需用户重新确认固定路径 Msgbox 授权后复验真实角标；本次未冒充授权后正数合计验收，也未重复长时间功耗测试。
+
 ## 最新：关闭聊天窗口后重新打开（2026-11-02）
 
 - 根因：运行中的应用只调用 activate，未发送系统重新打开请求，关闭窗口后无法重建窗口。

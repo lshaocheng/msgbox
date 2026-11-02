@@ -17,7 +17,7 @@ struct ChatApp: Identifiable {
 
 @MainActor
 final class Monitor: ObservableObject {
-    @Published var apps = ChatApp.supported
+    @Published var apps: [ChatApp]
     @Published private(set) var loginStatus = SMAppService.mainApp.status
     @Published var trusted = false
     @Published var notice: String?
@@ -25,6 +25,7 @@ final class Monitor: ObservableObject {
     @Published var lastUpdated: Date?
     @Published var suspended = false
     private let reader = DockReader()
+    private let defaults: UserDefaults
     private let timer = DispatchSource.makeTimerSource(queue: .main)
     private var observers: [NSObjectProtocol] = []
     private var discoveryDate = Date.distantPast
@@ -37,9 +38,27 @@ final class Monitor: ObservableObject {
     var totalLabel: String { MonitoringPolicy.totalLabel(apps.map(\.state)) }
     var sortedApps: [ChatApp] { MonitoringPolicy.ordered(apps.map(\.state)).map { apps[$0] } }
 
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        let disabled = Set(defaults.stringArray(forKey: "disabledAppIDs") ?? [])
+        apps = ChatApp.supported.filter { !disabled.contains($0.id) }
         timer.schedule(deadline: .distantFuture)
         timer.resume()
+    }
+
+    func isEnabled(_ app: ChatApp) -> Bool { apps.contains { $0.id == app.id } }
+
+    func setEnabled(_ enabled: Bool, for app: ChatApp) {
+        guard ChatApp.supported.contains(where: { $0.id == app.id }), isEnabled(app) != enabled else { return }
+        var disabled = Set(defaults.stringArray(forKey: "disabledAppIDs") ?? [])
+        if enabled { disabled.remove(app.id) } else { disabled.insert(app.id) }
+        defaults.set(disabled.sorted(), forKey: "disabledAppIDs")
+        generation += 1
+        apps = ChatApp.supported.filter { !disabled.contains($0.id) }.map { target in
+            apps.first(where: { $0.id == target.id }) ?? target
+        }
+        discoveryDate = .distantPast
+        refresh()
     }
 
     func start() {
