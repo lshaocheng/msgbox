@@ -6,9 +6,15 @@
 
 正式安装：`/Applications/Msgbox.app`，在 Finder 的“应用程序”中打开。应用图标与菜单栏使用同一个双气泡图形。旧用户目录副本保存在项目 `build/previous-user-Msgbox.app`，不再作为日常入口。
 
+本机版使用钥匙串中固定的 Apple Development 身份签名。更新请使用 `python3 scripts/install.py`：先构建、验证签名与已安装版本的身份一致，再备份和替换；缺少证书、临时签名或身份不匹配时停止，保留原安装。请先退出 Msgbox。首次从旧临时签名迁移使用 `python3 scripts/install.py --migrate-signature`，这一次可能需要重新授权，后续更新不再按每次构建的二进制哈希识别。备份位于忽略的 `build/installed-backups/`。多个 Apple Development 身份时，以环境变量 `MSGBOX_SIGNING_IDENTITY` 指定证书的 40 位指纹；不要更换开发团队、应用标识或日常安装路径。
+
+这是仅供本机使用的开发签名版本；对外分发需要另行使用 Developer ID 并公证。证书与私钥保留在钥匙串，不放进项目或安装包。证书到期需要正常续签，同一团队更新仍须通过旧版签名要求校验。
+
 菜单栏仅在有未读时把数字叠在图标右上角，没有数字底色、边框或胶囊。总数为 0 时只显示图标；达到 1000 时显示 `999+`。菜单项固定 38 pt，内部图标位置固定，不因数字位数改变挤动其他图标。展开列表保留系统提供的完整数量和合计。
 
 点击菜单栏图标，在列表底部点“设置…”（⌘,）打开设置窗口。“软件筛选”可分别勾选微信、QQ、Telegram，默认全部勾选；取消后立即停止参与角标读取、合计和列表显示。选择自动保存在本机，重启后保留，也可全部取消；空列表会提示前往设置选择软件。“关于 Msgbox”显示版本、软件简介和隐私说明。
+
+读取角标只需要**辅助功能**权限。缺少权限时，列表顶部显示用途和“前往辅助功能设置…”按钮，设置窗口也始终显示授权状态和入口。点击后由 macOS 登记当前应用、显示系统授权提示，并跳到“隐私与安全性 → 辅助功能”；是否开启由你决定。返回 Msgbox 会自动重新检测，无须手动刷新；若 macOS 尚未使首次授权生效，界面会提示退出重开一次。不需要给 Msgbox 开启录屏、全盘访问或通知权限。登录时启动是可选功能，系统要求批准时使用它自己的登录项设置入口。
 
 设置内“登录时启动”使用 macOS 原生登录项，可随时开启或关闭；首次安装不自动开启。系统要求批准时会显示明确提示与设置入口，失败会显示原因；登录启动静默驻留菜单栏，手动打开显示列表。测试进程不创建菜单栏项，普通多副本启动会回到已运行实例。
 
@@ -16,16 +22,17 @@
 
 1. 用 Xcode 26 打开 `Msgbox.xcodeproj`，选择 **Msgbox → My Mac**。
 2. 按 ⌘R。启动时直接显示“聊天未读 · Msgbox”列表窗口，同时显示菜单栏气泡图标，不显示 Dock 图标；关闭窗口后继续从菜单栏使用。重新打开应用会再次显示同一列表窗口。
-3. 默认不请求权限。若需要检测角标，先阅读界面说明，再主动打开“辅助功能设置”，由你手动添加并开启实际构建的 `Msgbox.app`。授权后返回点击刷新。
-4. 按 ⌘U 执行 XCTest。无开发团队也可本地 ad-hoc 构建；发布签名/公证不在 MVP 范围。
+3. 默认不弹系统权限框；未授权时界面主动提示用途。点击“前往辅助功能设置…”后，在系统设置中开启当前 Msgbox，返回自动检测。
+4. 按 ⌘U 执行 XCTest。Debug 名称为 `Msgbox Debug`，使用独立的 `local.msgbox.app.debug` 标识与临时签名，不覆盖日常正式版的授权。Release 必须使用固定 Apple Development 身份；本机安装脚本自动选取唯一可用证书和对应团队。
 
 命令行（在项目目录）：
 
 ```sh
 xcodebuild -project Msgbox.xcodeproj -scheme Msgbox -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath build build
 xcodebuild -project Msgbox.xcodeproj -scheme Msgbox -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath build -resultBundlePath logs/Tests-new.xcresult test
-xcodebuild -project Msgbox.xcodeproj -scheme Msgbox -configuration Release -destination 'platform=macOS,arch=arm64' -derivedDataPath build-release build analyze
-open build-release/Build/Products/Release/Msgbox.app
+python3 scripts/install.py
+open /Applications/Msgbox.app
+python3 scripts/test_install.py
 python3 scripts/audit.py
 python3 scripts/idle_measure.py
 ```
@@ -56,7 +63,7 @@ python3 scripts/idle_measure.py
 
 Telegram 顶部菜单栏的数字与底部 Dock 角标是两个显示入口。Msgbox 读取底部 Dock；顶部有数字不能证明 Dock 已提供角标。本机排查发现 macOS 系统设置 → 通知 → Telegram 的“允许通知”关闭，导致“应用图标角标”也被禁用。经用户授权，已开启通知总开关并仅保留应用角标，关闭桌面、通知中心、锁屏显示和声音。2026-11-02 15:48:52 正式版实际读到 Telegram=8、微信=1、QQ=0、合计=9，已验证 Telegram 正数角标计入合计。顶部菜单栏数字自身不作为读取来源。
 
-本地临时签名在构建变化后可能需要重新添加固定路径的 Msgbox 辅助功能授权并重启应用；不要用给开发工具额外授权替代。
+旧临时签名在构建变化后可能需要重新授权。新的本机安装流程已禁止这种签名覆盖固定签名版本；不要用给开发工具额外授权替代 Msgbox 授权。若用户撤销权限或系统策略改变，仍需由用户重新开启。
 
 ## 省电与扩展
 

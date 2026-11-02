@@ -77,6 +77,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard NSClassFromString("XCTestCase") == nil else { return }
+        monitor.refresh()
+        monitor.refreshLoginStatus()
+    }
+
     private func showAppList() {
         popover.performClose(nil)
         listWindow.makeKeyAndOrderFront(nil)
@@ -143,6 +149,10 @@ struct PopoverView: View {
                     .disabled(monitor.refreshing || monitor.suspended)
                     .help("刷新未读状态").accessibilityLabel("刷新未读状态")
             }
+            if !monitor.trusted && !monitor.apps.isEmpty {
+                AccessibilityPermissionView(monitor: monitor)
+                Divider()
+            }
             if monitor.apps.isEmpty {
                 Text("尚未选择软件，请在设置中勾选要统计的应用。")
                     .font(.caption).foregroundStyle(.secondary)
@@ -164,11 +174,6 @@ struct PopoverView: View {
                     .accessibilityLabel("\(app.name)，\(app.state.label)，打开应用")
             }
             Divider()
-            if !monitor.trusted {
-                Text("仅为读取 Dock 角标需要辅助功能权限。不会读取聊天窗口、消息或通知正文。默认不请求权限。")
-                    .font(.caption).foregroundStyle(.secondary)
-                Button("打开辅助功能设置…") { monitor.openAccessibilitySettings() }
-            }
             Text("数量来自各应用的 Dock 角标；+ 表示合计不完整，? 表示未知。圆点或 99+ 无法提供精确数量；无角标属性时无法确认未读状态。")
                 .font(.caption).foregroundStyle(.secondary)
             if let notice = monitor.notice { Text(notice).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
@@ -183,11 +188,35 @@ struct PopoverView: View {
     }
 }
 
+struct AccessibilityPermissionView: View {
+    @ObservedObject var monitor: Monitor
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(monitor.trusted ? "辅助功能已授权" : "需要辅助功能权限",
+                  systemImage: monitor.trusted ? "checkmark.shield" : "exclamationmark.shield")
+                .font(.headline)
+            Text("用于读取所选软件的 Dock 未读角标，不读取聊天内容，也不需要录屏、全盘访问或通知权限。")
+                .font(.caption).foregroundStyle(.secondary)
+            if !monitor.trusted {
+                Text("在系统设置中开启 Msgbox，返回后会自动检测。")
+                    .font(.caption).foregroundStyle(.secondary)
+                Text("若系统尚未使授权生效，请退出并重新打开 Msgbox。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Button("前往辅助功能设置…") { monitor.openAccessibilitySettings() }
+        }
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var monitor: Monitor
 
     var body: some View {
         Form {
+            Section("权限") {
+                AccessibilityPermissionView(monitor: monitor)
+            }
             Section("软件筛选") {
                 ForEach(ChatApp.supported) { app in
                     Toggle(app.name, isOn: Binding(
@@ -218,8 +247,9 @@ struct SettingsView: View {
             }
         }
             .formStyle(.grouped).frame(width: 400, height: 520)
-            .onAppear { monitor.refreshLoginStatus() }
+            .onAppear { monitor.refresh(); monitor.refreshLoginStatus() }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                monitor.refresh()
                 monitor.refreshLoginStatus()
             }
     }

@@ -4,3 +4,4 @@ build-release/
 xcuserdata/
 *.xcuserstate
 logs/
+__pycache__/

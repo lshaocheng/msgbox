@@ -1,5 +1,5 @@
 import AppKit
-import ApplicationServices
+@preconcurrency import ApplicationServices
 import Combine
 import ServiceManagement
 
@@ -106,7 +106,9 @@ final class Monitor: ObservableObject {
     func refresh() {
         guard !suspended, !refreshing else { return }
         refreshing = true
+        let wasTrusted = trusted
         trusted = AXIsProcessTrusted()
+        if trusted && !wasTrusted { notice = nil }
         if Date().timeIntervalSince(discoveryDate) > 60 {
             var discovered = apps
             for i in discovered.indices {
@@ -173,9 +175,14 @@ final class Monitor: ObservableObject {
     }
 
     func openAccessibilitySettings() {
-        // Opening this local system pane never requests or grants trust automatically.
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
-        NSWorkspace.shared.open(url)
+        // Register this build with macOS only after the user clicks the permission button.
+        trusted = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
+        let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility")!
+        if NSWorkspace.shared.open(url) {
+            notice = "请在“隐私与安全性 → 辅助功能”中开启 Msgbox，返回后会自动检测。"
+        } else {
+            notice = "无法打开系统设置。请手动前往“系统设置 → 隐私与安全性 → 辅助功能”，开启 Msgbox。"
+        }
     }
 
     func refreshLoginStatus() { loginStatus = SMAppService.mainApp.status }

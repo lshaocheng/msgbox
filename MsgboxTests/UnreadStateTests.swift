@@ -5,6 +5,11 @@ import ApplicationServices
 @testable import Msgbox
 
 final class UnreadStateTests: XCTestCase {
+    func testDebugHostHasSeparateIdentityAndDisplayName() {
+        XCTAssertEqual(Bundle.main.bundleIdentifier, "local.msgbox.app.debug")
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "Msgbox Debug")
+    }
+
     func testDockNoBadgeIsDistinctFromReadFailure() {
         XCTAssertEqual(DockReader.badgeState(value: nil, error: .noValue), .clear)
         XCTAssertEqual(DockReader.badgeState(value: "1", error: .success), .unread(1))
@@ -151,6 +156,22 @@ final class UnreadStateTests: XCTestCase {
             XCTAssertEqual(size.width, 350, accuracy: 1)
             XCTAssertGreaterThan(size.height, 150)
             XCTAssertLessThan(size.height, 800)
+        }
+    }
+
+    @MainActor
+    func testPermissionGuidanceFitsBothAuthorizationStates() {
+        let monitor = Monitor()
+        defer { monitor.stop() }
+        for trusted in [false, true] {
+            monitor.trusted = trusted
+            let guidance = NSHostingView(rootView: AccessibilityPermissionView(monitor: monitor).frame(width: 314))
+            XCTAssertEqual(guidance.fittingSize.width, 314, accuracy: 1)
+            XCTAssertGreaterThan(guidance.fittingSize.height, 60)
+            XCTAssertLessThan(guidance.fittingSize.height, 220)
+            let settings = NSHostingView(rootView: SettingsView(monitor: monitor))
+            XCTAssertEqual(settings.fittingSize.width, 400, accuracy: 1)
+            XCTAssertEqual(settings.fittingSize.height, 520, accuracy: 1)
         }
     }
 
