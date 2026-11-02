@@ -15,7 +15,7 @@ for pattern in [r'\b(URLSession|URLRequest|NWConnection|NWListener|WebSocket|WKW
                 r'AXIsProcessTrustedWithOptions|AXUIElementCreateSystemWide|AXUIElementCopyElementAtPosition']:
     assert not re.search(pattern, text), f'Unexpected API/content: {pattern}'
 imports = set(re.findall(r'^import (\w+)', text, flags=re.M))
-assert imports <= {'AppKit', 'SwiftUI', 'Combine', 'Foundation', 'ApplicationServices'}, imports
+assert imports <= {'AppKit', 'SwiftUI', 'Combine', 'Foundation', 'ApplicationServices', 'ServiceManagement'}, imports
 plist = plistlib.loads((root / 'Msgbox/Info.plist').read_bytes())
 assert plist['LSUIElement'] is True
 assert not any('UsageDescription' in key for key in plist)

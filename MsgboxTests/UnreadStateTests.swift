@@ -70,9 +70,44 @@ final class UnreadStateTests: XCTestCase {
 
     func testLowFrequencyPolicy() {
         XCTAssertEqual(MonitoringPolicy.interval(trusted: true, running: true), 3)
+        XCTAssertEqual(MonitoringPolicy.interval(trusted: true, running: true, lowPower: true), 6)
         for (trusted, running) in [(false, false), (false, true), (true, false)] {
             XCTAssertEqual(MonitoringPolicy.interval(trusted: trusted, running: running), 15)
         }
+    }
+
+    func testCompactCountKeepsExactListNumbers() {
+        XCTAssertEqual(MonitoringPolicy.totalLabel([.clear], compact: true), "")
+        XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(999)], compact: true), "999")
+        for count in [1000, 1001, 12345] {
+            XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(count)], compact: true), "999+")
+            XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(count)]), String(count))
+            XCTAssertEqual(UnreadState.unread(count).label, "\(count) 条未读")
+        }
+        XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(600), .unread(700)], compact: true), "999+")
+        XCTAssertEqual(MonitoringPolicy.totalLabel([.permissionRequired], compact: true), "?")
+    }
+
+    @MainActor
+    func testOverlayStatusImagesHaveFixedSizeAndReadableCounts() {
+        for value in ["", "1", "99", "999", "999+"] {
+            let image = StatusIcon.image(count: value)
+            XCTAssertEqual(image.size, NSSize(width: 32, height: 22))
+            XCTAssertTrue(image.isTemplate, "Native template must adapt to light/dark menu bars")
+            XCTAssertNotNil(image.tiffRepresentation)
+            let size = (value as NSString).size(withAttributes: [.font: StatusIcon.font])
+            XCTAssertLessThanOrEqual(size.width, 25)
+            XCTAssertLessThanOrEqual(size.height, 12)
+        }
+    }
+
+    @MainActor
+    func testAdditionalChatAppUsesExistingCountAndSort() {
+        var apps = ChatApp.supported
+        apps.append(ChatApp(id: "test.additional-chat", name: "Additional Chat", state: .unread(42)))
+        XCTAssertEqual(Set(apps.map(\.id)).count, apps.count)
+        XCTAssertEqual(MonitoringPolicy.ordered(apps.map(\.state)).first, 3)
+        XCTAssertEqual(MonitoringPolicy.totalLabel(apps.map(\.state)), "42+")
     }
 
     func testParserPerformance() {

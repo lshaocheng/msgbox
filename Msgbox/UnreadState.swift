@@ -43,7 +43,7 @@ struct TargetSnapshot: Sendable {
 }
 
 enum MonitoringPolicy {
-    static func totalLabel(_ states: [UnreadState]) -> String {
+    static func totalLabel(_ states: [UnreadState], compact: Bool = false) -> String {
         var total = 0
         var incomplete = false
         for state in states {
@@ -58,10 +58,14 @@ enum MonitoringPolicy {
             case .clear, .notInstalled, .notRunning: break
             }
         }
+        if compact && total >= 1000 { return "999+" }
+        if compact && total == 0 && !incomplete { return "" }
         return incomplete ? (total > 0 ? "\(total)+" : "?") : String(total)
     }
 
-    static func interval(trusted: Bool, running: Bool) -> TimeInterval { trusted && running ? 3 : 15 }
+    static func interval(trusted: Bool, running: Bool, lowPower: Bool = false) -> TimeInterval {
+        trusted && running ? (lowPower ? 6 : 3) : 15
+    }
     static func ordered(_ states: [UnreadState]) -> [Int] {
         states.indices.sorted {
             states[$0].hasUnread == states[$1].hasUnread ? $0 < $1 : states[$0].hasUnread

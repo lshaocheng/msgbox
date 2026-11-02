@@ -1,20 +1,24 @@
 import AppKit
 import ApplicationServices
 import Combine
+import ServiceManagement
 
 struct ChatApp: Identifiable {
     let id: String
     let name: String
     var url: URL?
     var state: UnreadState = .unknown("等待检测")
-    var icon: NSImage? { url.map { NSWorkspace.shared.icon(forFile: $0.path) } }
+    var icon: NSImage?
+
+    @MainActor static let supported = [ChatApp(id: "com.tencent.xinWeChat", name: "微信"),
+                                      ChatApp(id: "com.tencent.qq", name: "QQ"),
+                                      ChatApp(id: "com.tdesktop.Telegram", name: "Telegram")]
 }
 
 @MainActor
 final class Monitor: ObservableObject {
-    @Published var apps = [ChatApp(id: "com.tencent.xinWeChat", name: "微信"),
-                           ChatApp(id: "com.tencent.qq", name: "QQ"),
-                           ChatApp(id: "com.tdesktop.Telegram", name: "Telegram")]
+    @Published var apps = ChatApp.supported
+    @Published private(set) var loginStatus = SMAppService.mainApp.status
     @Published var trusted = false
     @Published var notice: String?
     @Published var refreshing = false
@@ -44,9 +48,10 @@ final class Monitor: ObservableObject {
         timer.setEventHandler { [weak self] in self?.refresh() }
         let center = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
-            observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+            observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
+                let bundleID = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.bundleIdentifier
                 Task { @MainActor in
-                    guard let self else { return }
+                    guard let self, self.apps.contains(where: { $0.id == bundleID }) else { return }
                     self.discoveryDate = .distantPast
                     self.generation += 1
                     self.refresh()
@@ -84,12 +89,22 @@ final class Monitor: ObservableObject {
         refreshing = true
         trusted = AXIsProcessTrusted()
         if Date().timeIntervalSince(discoveryDate) > 60 {
-            for i in apps.indices { apps[i].url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: apps[i].id) }
+            var discovered = apps
+            for i in discovered.indices {
+                let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: discovered[i].id)
+                if discovered[i].url != url {
+                    discovered[i].url = url
+                    discovered[i].icon = url.map { NSWorkspace.shared.icon(forFile: $0.path) }
+                }
+            }
+            if discovered.map(\.url) != apps.map(\.url) { apps = discovered }
             discoveryDate = Date()
         }
+        let runningIDs = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         let snapshots = apps.map { TargetSnapshot(id: $0.id, url: $0.url,
-            running: !NSRunningApplication.runningApplications(withBundleIdentifier: $0.id).isEmpty) }
-        let interval = MonitoringPolicy.interval(trusted: trusted, running: snapshots.contains(where: \.running))
+            running: runningIDs.contains($0.id)) }
+        let interval = MonitoringPolicy.interval(trusted: trusted, running: snapshots.contains(where: \.running),
+                                                 lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled)
         if interval != activeInterval {
             timer.schedule(deadline: .now() + interval, repeating: interval, leeway: .milliseconds(500))
             activeInterval = interval
@@ -101,7 +116,11 @@ final class Monitor: ObservableObject {
             refreshing = false
             guard !suspended else { return }
             guard currentGeneration == generation else { refresh(); return }
-            for i in apps.indices { apps[i].state = results[i] }
+            if apps.map(\.state) != results {
+                var updated = apps
+                for i in updated.indices { updated[i].state = results[i] }
+                apps = updated
+            }
             lastUpdated = Date()
         }
     }
@@ -144,4 +163,21 @@ final class Monitor: ObservableObject {
         guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else { return }
         NSWorkspace.shared.open(url)
     }
+
+    func refreshLoginStatus() { loginStatus = SMAppService.mainApp.status }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        guard !enabled || Bundle.main.bundleURL.path.hasPrefix("/Applications/") else {
+            notice = "请先从“应用程序”文件夹打开 Msgbox，再设置登录时启动。"
+            return
+        }
+        do {
+            if enabled { try SMAppService.mainApp.register() }
+            else { try SMAppService.mainApp.unregister() }
+            notice = nil
+        } catch { notice = "无法更改登录时启动：\(error.localizedDescription)" }
+        refreshLoginStatus()
+    }
+
+    func openLoginSettings() { SMAppService.openSystemSettingsLoginItems() }
 }
