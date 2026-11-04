@@ -79,6 +79,6 @@ Telegram 顶部菜单栏的数字与底部 Dock 角标是两个显示入口。Ms
 
 支持正式版 Discord（`com.hnc.Discord`），默认勾选，复用 Dock 读取、合计、排序和打开逻辑；旧有软件筛选保持不变。可在设置中取消勾选。
 
-Discord → User Settings → Notifications → Badges → Enable Unread Message Badge 应开启；若 macOS“系统设置 → 通知”中有 Discord，也需允许应用图标角标。数字按 Dock 实际提供的值计入合计，圆点显示“有未读”，不换算为消息数量。Discord 的普通频道未读与私信/提及角标可能不同，不能把角标当作所有频道消息总数。
+Discord → User Settings → Notifications → Badges → Enable Unread Message Badge 应开启；若 macOS“系统设置 → 通知”中有 Discord，也需允许应用图标角标。Discord 仅在 Dock 提供明确数字时显示未读并计入合计；忽略普通频道圆点、感叹号和非精确的 `99+`，显示“0 条未读（无数字角标）”。读取错误仍显示未知。Discord 的普通频道未读与私信/提及角标可能不同，不能把角标当作所有频道消息总数。
 
-2026-11-04 本机正式版已验证 Discord“有未读”角标、列表排序及打开调用；两处角标开关均已开启。数字角标和实际新消息到达/读后清除仍待人工验收。
+2026-11-04 初次接入已验证圆点角标读取及打开调用；随后按用户要求改为只统计明确数字。两处角标开关均已开启。数字角标和实际新消息到达/读后清除仍待人工验收。

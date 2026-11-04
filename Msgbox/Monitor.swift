@@ -9,6 +9,9 @@ struct ChatApp: Identifiable {
     var url: URL?
     var state: UnreadState = .unknown("等待检测")
     var icon: NSImage?
+    var stateLabel: String {
+        id == "com.hnc.Discord" && state == .clear ? "0 条未读（无数字角标）" : state.label
+    }
 
     @MainActor static let supported = [ChatApp(id: "com.tencent.xinWeChat", name: "微信"),
                                       ChatApp(id: "com.tencent.qq", name: "QQ"),

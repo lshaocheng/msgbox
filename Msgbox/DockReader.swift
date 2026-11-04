@@ -49,7 +49,7 @@ actor DockReader {
             if target.running, let item = cachedItems[target.id] {
                 // shortcut: AXStatusLabel is undocumented; fail closed until each OS/app version is accepted.
                 let result = attribute(item, "AXStatusLabel")
-                state = Self.badgeState(value: result.value as? String, error: result.error)
+                state = Self.badgeState(value: result.value as? String, error: result.error, appID: target.id)
                 if result.error != .success && result.error != .noValue {
                     cachedItems.removeValue(forKey: target.id)
                 }
@@ -58,9 +58,13 @@ actor DockReader {
         }
     }
 
-    nonisolated static func badgeState(value: String?, error: AXError) -> UnreadState {
+    nonisolated static func badgeState(value: String?, error: AXError, appID: String? = nil) -> UnreadState {
         switch error {
-        case .success: return .badge(value)
+        case .success:
+            let state = UnreadState.badge(value)
+            // Discord channel activity dots are not numeric notification counts.
+            if appID == "com.hnc.Discord", state == .unread(nil) { return .clear }
+            return state
         // Dock reports noValue when the supported status label has no badge.
         case .noValue: return .clear
         case .apiDisabled: return .unknown("辅助功能访问被拒绝")

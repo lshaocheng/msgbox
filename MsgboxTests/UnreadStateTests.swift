@@ -23,6 +23,23 @@ final class UnreadStateTests: XCTestCase {
         }
     }
 
+    func testDiscordRequiresAnExactNumericBadgeWithoutHidingReadErrors() {
+        for text in ["•", "●", "!", "99+", "", "0"] {
+            let state = DockReader.badgeState(value: text, error: .success, appID: "com.hnc.Discord")
+            XCTAssertEqual(state, .clear)
+            XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(3), state]), "3")
+        }
+        for text in ["•", "●", "!", "99+"] {
+            XCTAssertEqual(DockReader.badgeState(value: text, error: .success, appID: "com.tencent.qq"), .unread(nil))
+        }
+        XCTAssertEqual(DockReader.badgeState(value: " 12 ", error: .success, appID: "com.hnc.Discord"), .unread(12))
+        for (value, error) in [(nil, AXError.success), ("unexpected", .success), ("5", .cannotComplete), (nil, .attributeUnsupported)] {
+            guard case .unknown = DockReader.badgeState(value: value, error: error, appID: "com.hnc.Discord") else {
+                return XCTFail("Discord read failures must remain unknown")
+            }
+        }
+    }
+
     func testBadgeParsing() {
         for text in ["", "  ", "0", "000"] { XCTAssertEqual(UnreadState.badge(text), .clear) }
         for (text, count) in [("1", 1), ("42", 42), (" 12\n", 12)] {
@@ -129,11 +146,13 @@ final class UnreadStateTests: XCTestCase {
         XCTAssertFalse(monitor.apps.contains { $0.id == "com.tencent.qq" })
         for i in monitor.apps.indices { monitor.apps[i].state = .clear }
         let index = try XCTUnwrap(monitor.apps.firstIndex { $0.id == discord.id })
-        monitor.apps[index].state = .badge("5")
+        monitor.apps[index].state = DockReader.badgeState(value: "5", error: .success, appID: discord.id)
         XCTAssertEqual(monitor.totalLabel, "5")
         XCTAssertEqual(monitor.sortedApps.first?.id, discord.id)
-        monitor.apps[index].state = .badge("•")
-        XCTAssertEqual(monitor.totalLabel, "?")
+        monitor.apps[index].state = DockReader.badgeState(value: "•", error: .success, appID: discord.id)
+        XCTAssertEqual(monitor.totalLabel, "0")
+        XCTAssertFalse(monitor.apps[index].state.hasUnread)
+        XCTAssertEqual(monitor.apps[index].stateLabel, "0 条未读（无数字角标）")
         monitor.setEnabled(false, for: discord)
         XCTAssertEqual(monitor.totalLabel, "0")
         let restored = Monitor(defaults: defaults)

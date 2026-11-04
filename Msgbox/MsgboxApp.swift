@@ -164,14 +164,14 @@ struct PopoverView: View {
                         else { Image(systemName: "app.dashed").frame(width: 32, height: 32) }
                         VStack(alignment: .leading, spacing: 3) {
                             Text(app.name).font(.body.weight(.medium))
-                            Text(app.state.label).font(.caption).foregroundStyle(.secondary)
+                            Text(app.stateLabel).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         if app.state.hasUnread { Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.orange) }
                         Image(systemName: "arrow.up.forward").foregroundStyle(.secondary)
                     }.padding(8).contentShape(Rectangle())
                 }.buttonStyle(.plain).help("打开或切换到\(app.name)")
-                    .accessibilityLabel("\(app.name)，\(app.state.label)，打开应用")
+                    .accessibilityLabel("\(app.name)，\(app.stateLabel)，打开应用")
             }
             Divider()
             Text("数量来自各应用的 Dock 角标；+ 表示合计不完整，? 表示未知。圆点或 99+ 无法提供精确数量；无角标属性时无法确认未读状态。")
