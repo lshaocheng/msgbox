@@ -12,7 +12,8 @@ struct ChatApp: Identifiable {
 
     @MainActor static let supported = [ChatApp(id: "com.tencent.xinWeChat", name: "微信"),
                                       ChatApp(id: "com.tencent.qq", name: "QQ"),
-                                      ChatApp(id: "com.tdesktop.Telegram", name: "Telegram")]
+                                      ChatApp(id: "com.tdesktop.Telegram", name: "Telegram"),
+                                      ChatApp(id: "com.hnc.Discord", name: "Discord")]
 }
 
 @MainActor

@@ -136,3 +136,12 @@
 - 用户明确反馈“已看到图标，点击能打开列表”，本项人工验收通过。工具读取 Control Center 超时，未声称自动点击通过。
 - 为图形验收正常退出并自动重载一次 Control Center，保留设置；全局重置对话框已取消，未执行重置。恢复 Hidden Bar，关闭其偏好窗口，保留原自动隐藏设置。
 - 未改产品源代码/签名/Bundle ID/安全权限，未重跑无变化的测试。已更新 README、HUMAN_ACCEPTANCE、FINAL_REPORT。当前运行 ~/Applications/Msgbox.app（原样复制的 Release）；真实角标兼容性仍未验收。
+
+## Discord 接入验收（2026-11-04）
+
+- 从本机 Discord 安装包确认 Bundle ID `com.hnc.Discord`，加入 `ChatApp.supported`，复用现有筛选、排序、Dock 角标读取、合计与打开逻辑，无新依赖和网络访问。
+- CUA 确认 Discord 的 Enable Unread Message Badge 已 on；macOS Discord 通知总开关与 Badge application icon 均已 on，无须变更这些设置。
+- Debug XCTest 22/22、安装脚本测试 8/8 通过；Release 构建、静态分析及离线/签名审计通过。使用现有安装脚本验证签名一致、备份旧版后更新 `/Applications/Msgbox.app`。
+- 正式版实际显示 Discord“有未读”、置于列表首位、合计“?”；这是无精确数值的 Dock 角标，不能当作 0 或推算数量。点击 Discord 后系统打开调用成功，Discord 设置页可见。
+- 更新后辅助功能仍已授权，Discord 默认勾选；微信/QQ 勾选、Telegram 未勾选及登录时启动 on 均保留。
+- 数字角标、真实新私信/@提及到达及读后清除尚未做人工验收；未发送测试消息。数字/圆点合计、排除 Discord、持久化和旧用户筛选保留有自动化测试覆盖。

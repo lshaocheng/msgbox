@@ -111,8 +111,34 @@ final class UnreadStateTests: XCTestCase {
         var apps = ChatApp.supported
         apps.append(ChatApp(id: "test.additional-chat", name: "Additional Chat", state: .unread(42)))
         XCTAssertEqual(Set(apps.map(\.id)).count, apps.count)
-        XCTAssertEqual(MonitoringPolicy.ordered(apps.map(\.state)).first, 3)
+        XCTAssertEqual(MonitoringPolicy.ordered(apps.map(\.state)).first, apps.count - 1)
         XCTAssertEqual(MonitoringPolicy.totalLabel(apps.map(\.state)), "42+")
+    }
+
+    @MainActor
+    func testDiscordIsEnabledForExistingUsersAndCanBeExcluded() throws {
+        let suite = "MsgboxTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(["com.tencent.qq"], forKey: "disabledAppIDs")
+        let monitor = Monitor(defaults: defaults)
+        defer { monitor.stop() }
+        monitor.powerChanged(NSWorkspace.willSleepNotification)
+        let discord = try XCTUnwrap(monitor.apps.first { $0.id == "com.hnc.Discord" })
+        XCTAssertEqual(discord.name, "Discord")
+        XCTAssertFalse(monitor.apps.contains { $0.id == "com.tencent.qq" })
+        for i in monitor.apps.indices { monitor.apps[i].state = .clear }
+        let index = try XCTUnwrap(monitor.apps.firstIndex { $0.id == discord.id })
+        monitor.apps[index].state = .badge("5")
+        XCTAssertEqual(monitor.totalLabel, "5")
+        XCTAssertEqual(monitor.sortedApps.first?.id, discord.id)
+        monitor.apps[index].state = .badge("•")
+        XCTAssertEqual(monitor.totalLabel, "?")
+        monitor.setEnabled(false, for: discord)
+        XCTAssertEqual(monitor.totalLabel, "0")
+        let restored = Monitor(defaults: defaults)
+        defer { restored.stop() }
+        XCTAssertFalse(restored.isEnabled(discord))
     }
 
     func testParserPerformance() {
@@ -189,10 +215,10 @@ final class UnreadStateTests: XCTestCase {
         monitor.setEnabled(false, for: telegram)
         XCTAssertFalse(monitor.isEnabled(telegram))
         XCTAssertFalse(monitor.sortedApps.contains { $0.id == telegram.id })
-        XCTAssertEqual(monitor.totalLabel, "3")
+        XCTAssertEqual(monitor.totalLabel, "7")
         let restored = Monitor(defaults: defaults)
         defer { restored.stop() }
-        XCTAssertEqual(restored.apps.map(\.id), Array(ChatApp.supported.prefix(2)).map(\.id))
+        XCTAssertEqual(restored.apps.map(\.id), ChatApp.supported.filter { $0.id != telegram.id }.map(\.id))
         for app in ChatApp.supported { monitor.setEnabled(false, for: app) }
         XCTAssertTrue(monitor.apps.isEmpty)
         XCTAssertEqual(monitor.totalLabel, "0")
@@ -203,7 +229,7 @@ final class UnreadStateTests: XCTestCase {
         XCTAssertEqual(monitor.apps.map(\.id), [telegram.id])
         XCTAssertEqual(monitor.apps.first?.state, .unknown("等待检测"), "Re-enabling must not reuse an old count")
         monitor.setEnabled(false, for: ChatApp(id: "unsupported", name: "Unsupported"))
-        XCTAssertEqual(defaults.stringArray(forKey: "disabledAppIDs"), ChatApp.supported.prefix(2).map(\.id).sorted())
+        XCTAssertEqual(defaults.stringArray(forKey: "disabledAppIDs"), ChatApp.supported.filter { $0.id != telegram.id }.map(\.id).sorted())
     }
 
     @MainActor

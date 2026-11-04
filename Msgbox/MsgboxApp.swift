@@ -241,7 +241,7 @@ struct SettingsView: View {
             Section("关于 Msgbox") {
                 Text("Msgbox \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
                     .font(.headline)
-                Text("将微信、QQ 和 Telegram 的 Dock 未读角标汇总到菜单栏，点击列表即可打开对应软件。")
+                Text("将微信、QQ、Telegram 和 Discord 的 Dock 未读角标汇总到菜单栏，点击列表即可打开对应软件。")
                 Text("完全离线，仅读取 Dock 角标元数据，不读取聊天内容，也不保存未读数量历史。角标检测需要辅助功能权限。")
                     .font(.caption).foregroundStyle(.secondary)
             }

@@ -1,6 +1,6 @@
 import AppKit
 import ApplicationServices
-for path in ["/Applications/WeChat.app", "/Applications/QQ.app", "/Applications/Telegram.app"] {
+for path in ["/Applications/WeChat.app", "/Applications/QQ.app", "/Applications/Telegram.app", "/Applications/Discord.app"] {
  if let bundle = Bundle(path: path), let id = bundle.bundleIdentifier {
  print("app=\(path) id=\(id) version=\(bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "unknown") running=\(NSRunningApplication.runningApplications(withBundleIdentifier: id).count)")
  }
