@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var listWindow: NSWindow = {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 350, height: 460),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "聊天未读 · Msgbox"
+        window.title = String(localized: "Unread Chats · Msgbox")
         window.isReleasedWhenClosed = false
         window.contentViewController = NSHostingController(rootView: PopoverView(monitor: monitor, onOpenSettings: { [weak self] in self?.showSettings() }))
         window.center()
@@ -27,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var settingsWindow: NSWindow = {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 520),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "设置 · Msgbox"
+        window.title = String(localized: "Settings · Msgbox")
         window.isReleasedWhenClosed = false
         window.contentViewController = NSHostingController(rootView: SettingsView(monitor: monitor))
         window.center()
@@ -63,8 +63,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.item.button?.image = StatusIcon.image(count: compact)
                 self?.displayedCount = compact
             }
-            self?.item.button?.setAccessibilityLabel("聊天未读，合计 \(total)")
-            self?.item.button?.toolTip = "未读角标总数：\(total)；+ 表示数量不完整，? 表示数量未知；展开查看各应用"
+            self?.item.button?.setAccessibilityLabel(String(localized: "Unread chats, total \(total)"))
+            self?.item.button?.toolTip = String(localized: "Unread badge total: \(total). + means incomplete and ? means unknown. Open for details.")
         }.store(in: &subscriptions)
         monitor.start()
         let loginLaunch = NSAppleEventManager.shared().currentAppleEvent?
@@ -142,19 +142,19 @@ struct PopoverView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("聊天未读").font(.headline)
-                Text("合计 \(monitor.totalLabel)").monospacedDigit()
+                Text("Unread Chats").font(.headline)
+                Text("Total \(monitor.totalLabel)").monospacedDigit()
                 Spacer()
                 Button { monitor.refresh() } label: { Image(systemName: "arrow.clockwise") }
                     .disabled(monitor.refreshing || monitor.suspended)
-                    .help("刷新未读状态").accessibilityLabel("刷新未读状态")
+                    .help("Refresh unread status").accessibilityLabel("Refresh unread status")
             }
             if !monitor.trusted && !monitor.apps.isEmpty {
                 AccessibilityPermissionView(monitor: monitor)
                 Divider()
             }
             if monitor.apps.isEmpty {
-                Text("尚未选择软件，请在设置中勾选要统计的应用。")
+                Text("Choose apps to monitor in Settings.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             ForEach(monitor.sortedApps) { app in
@@ -170,19 +170,19 @@ struct PopoverView: View {
                         if app.state.hasUnread { Image(systemName: "circle.fill").font(.caption2).foregroundStyle(.orange) }
                         Image(systemName: "arrow.up.forward").foregroundStyle(.secondary)
                     }.padding(8).contentShape(Rectangle())
-                }.buttonStyle(.plain).help("打开或切换到\(app.name)")
-                    .accessibilityLabel("\(app.name)，\(app.stateLabel)，打开应用")
+                }.buttonStyle(.plain).help("Open or switch to \(app.name)")
+                    .accessibilityLabel("\(app.name), \(app.stateLabel), open app")
             }
             Divider()
-            Text("数量来自各应用的 Dock 角标；+ 表示合计不完整，? 表示未知。圆点或 99+ 无法提供精确数量；无角标属性时无法确认未读状态。")
+            Text("Counts come from Dock badges. + means incomplete and ? means unknown. Dots and badges like 99+ give no exact count.")
                 .font(.caption).foregroundStyle(.secondary)
             if let notice = monitor.notice { Text(notice).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
             HStack {
-                Text(monitor.suspended ? "已暂停监控" : monitor.lastUpdated.map { "更新于 \($0.formatted(date: .omitted, time: .standard))" } ?? "等待检测")
+                Text(monitor.suspended ? String(localized: "Monitoring paused") : monitor.lastUpdated.map { String(localized: "Updated at \($0.formatted(date: .omitted, time: .standard))") } ?? String(localized: "Waiting for a check"))
                     .font(.caption2).foregroundStyle(.secondary)
                 Spacer()
-                Button("设置…", action: onOpenSettings).keyboardShortcut(",")
-                Button("退出") { NSApp.terminate(nil) }.keyboardShortcut("q")
+                Button("Settings…", action: onOpenSettings).keyboardShortcut(",")
+                Button("Quit") { NSApp.terminate(nil) }.keyboardShortcut("q")
             }
         }.padding(18).frame(width: 350).fixedSize(horizontal: false, vertical: true)
     }
@@ -193,18 +193,18 @@ struct AccessibilityPermissionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(monitor.trusted ? "辅助功能已授权" : "需要辅助功能权限",
+            Label(monitor.trusted ? String(localized: "Accessibility granted") : String(localized: "Accessibility permission required"),
                   systemImage: monitor.trusted ? "checkmark.shield" : "exclamationmark.shield")
                 .font(.headline)
-            Text("用于读取所选软件的 Dock 未读角标，不读取聊天内容，也不需要录屏、全盘访问或通知权限。")
+            Text("Msgbox uses Accessibility to read Dock badges. Chat content stays private.")
                 .font(.caption).foregroundStyle(.secondary)
             if !monitor.trusted {
-                Text("在系统设置中开启 Msgbox，返回后会自动检测。")
+                Text("Enable Msgbox in System Settings, then return here.")
                     .font(.caption).foregroundStyle(.secondary)
-                Text("若系统尚未使授权生效，请退出并重新打开 Msgbox。")
+                Text("If access still appears off, quit and reopen Msgbox.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Button("前往辅助功能设置…") { monitor.openAccessibilitySettings() }
+            Button("Open Accessibility Settings…") { monitor.openAccessibilitySettings() }
         }
     }
 }
@@ -214,35 +214,35 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("权限") {
+            Section("Permissions") {
                 AccessibilityPermissionView(monitor: monitor)
             }
-            Section("软件筛选") {
+            Section("Apps to Monitor") {
                 ForEach(ChatApp.supported) { app in
                     Toggle(app.name, isOn: Binding(
                         get: { monitor.isEnabled(app) },
                         set: { monitor.setEnabled($0, for: app) })).toggleStyle(.checkbox)
                 }
-                Text("只读取、统计和显示勾选的软件。选择自动保存在本机，可随时更改。")
+                Text("Only selected apps appear in the list and count toward the total. Choices are saved on this Mac.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("通用") {
-                Toggle("登录时启动", isOn: Binding(
+            Section("General") {
+                Toggle("Launch at Login", isOn: Binding(
                     get: { monitor.loginStatus == .enabled || monitor.loginStatus == .requiresApproval },
                     set: { monitor.setLaunchAtLogin($0) }))
                 if monitor.loginStatus == .requiresApproval {
-                    Text("自启动等待系统批准").font(.caption).foregroundStyle(.secondary)
-                    Button("打开登录项设置…") { monitor.openLoginSettings() }
+                    Text("Launch at login is awaiting approval.").font(.caption).foregroundStyle(.secondary)
+                    Button("Open Login Items Settings…") { monitor.openLoginSettings() }
                 }
                 if let notice = monitor.notice {
                     Text(notice).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
                 }
             }
-            Section("关于 Msgbox") {
+            Section("About Msgbox") {
                 Text("Msgbox \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
                     .font(.headline)
-                Text("将微信、QQ、Telegram 和 Discord 的 Dock 未读角标汇总到菜单栏，点击列表即可打开对应软件。")
-                Text("完全离线，仅读取 Dock 角标元数据，不读取聊天内容，也不保存未读数量历史。角标检测需要辅助功能权限。")
+                Text("See WeChat, QQ, Telegram, and Discord Dock badges in the menu bar. Click an app to open it.")
+                Text("Msgbox works offline. It reads Dock badge metadata through Accessibility and keeps no count history.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

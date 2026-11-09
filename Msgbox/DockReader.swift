@@ -10,12 +10,12 @@ actor DockReader {
         guard trusted, targets.contains(where: { $0.running && $0.url != nil }) else {
             cachedItems.removeAll()
             return targets.map { UnreadState.resolve(installed: $0.url != nil, running: $0.running,
-                                                      trusted: trusted, badge: .unknown("未检测")) }
+                                                      trusted: trusted, badge: .unknown(String(localized: "Not checked"))) }
         }
         guard let dock = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first else {
             cachedItems.removeAll()
             return targets.map { UnreadState.resolve(installed: $0.url != nil, running: $0.running,
-                                                      trusted: trusted, badge: .unknown("Dock 不可用")) }
+                                                      trusted: trusted, badge: .unknown(String(localized: "Dock unavailable"))) }
         }
         if dockPID != dock.processIdentifier {
             cachedItems.removeAll()
@@ -45,7 +45,7 @@ actor DockReader {
             }
         }
         return targets.map { target in
-            var state: UnreadState = .unknown("Dock 中未找到应用图标")
+            var state: UnreadState = .unknown(String(localized: "App icon missing from the Dock"))
             if target.running, let item = cachedItems[target.id] {
                 // shortcut: AXStatusLabel is undocumented; fail closed until each OS/app version is accepted.
                 let result = attribute(item, "AXStatusLabel")
@@ -67,9 +67,9 @@ actor DockReader {
             return state
         // Dock reports noValue when the supported status label has no badge.
         case .noValue: return .clear
-        case .apiDisabled: return .unknown("辅助功能访问被拒绝")
-        case .attributeUnsupported: return .unknown("Dock 不支持角标读取")
-        default: return .unknown("Dock 角标不可读取")
+        case .apiDisabled: return .unknown(String(localized: "Accessibility access denied"))
+        case .attributeUnsupported: return .unknown(String(localized: "Dock does not support reading badges"))
+        default: return .unknown(String(localized: "Could not read Dock badge"))
         }
     }
 

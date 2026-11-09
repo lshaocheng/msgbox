@@ -5,6 +5,16 @@ import ApplicationServices
 @testable import Msgbox
 
 final class UnreadStateTests: XCTestCase {
+    func testEnglishFallbackAndSimplifiedChineseLocalization() throws {
+        let appBundle = Bundle(for: AppDelegate.self)
+        XCTAssertEqual(appBundle.developmentLocalization, "en")
+        let chineseURL = try XCTUnwrap(appBundle.url(forResource: "zh-Hans", withExtension: "lproj"))
+        let chinese = try XCTUnwrap(Bundle(url: chineseURL))
+        XCTAssertEqual(chinese.localizedString(forKey: "Settings · Msgbox", value: nil, table: nil), "设置 · Msgbox")
+        XCTAssertEqual(chinese.localizedString(forKey: "Open Accessibility Settings…", value: nil, table: nil), "前往辅助功能设置…")
+        XCTAssertEqual(chinese.localizedString(forKey: "%lld unread", value: nil, table: nil), "%lld 条未读")
+    }
+
     func testDebugHostHasSeparateIdentityAndDisplayName() {
         XCTAssertEqual(Bundle.main.bundleIdentifier, "local.msgbox.app.debug")
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "Msgbox Debug")
@@ -104,7 +114,7 @@ final class UnreadStateTests: XCTestCase {
         for count in [1000, 1001, 12345] {
             XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(count)], compact: true), "999+")
             XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(count)]), String(count))
-            XCTAssertEqual(UnreadState.unread(count).label, "\(count) 条未读")
+            XCTAssertEqual(UnreadState.unread(count).label, String(localized: "\(count) unread"))
         }
         XCTAssertEqual(MonitoringPolicy.totalLabel([.unread(600), .unread(700)], compact: true), "999+")
         XCTAssertEqual(MonitoringPolicy.totalLabel([.permissionRequired], compact: true), "?")
@@ -152,7 +162,7 @@ final class UnreadStateTests: XCTestCase {
         monitor.apps[index].state = DockReader.badgeState(value: "•", error: .success, appID: discord.id)
         XCTAssertEqual(monitor.totalLabel, "0")
         XCTAssertFalse(monitor.apps[index].state.hasUnread)
-        XCTAssertEqual(monitor.apps[index].stateLabel, "0 条未读（无数字角标）")
+        XCTAssertEqual(monitor.apps[index].stateLabel, String(localized: "0 unread (no numeric badge)"))
         monitor.setEnabled(false, for: discord)
         XCTAssertEqual(monitor.totalLabel, "0")
         let restored = Monitor(defaults: defaults)
@@ -195,7 +205,7 @@ final class UnreadStateTests: XCTestCase {
             monitor.trusted = i.isMultiple(of: 2)
             monitor.apps[0].state = .unread(12)
             monitor.apps[1].state = .permissionRequired
-            monitor.apps[2].state = .unknown("Dock 角标不可读取")
+            monitor.apps[2].state = .unknown(String(localized: "Could not read Dock badge"))
             let host = NSHostingView(rootView: PopoverView(monitor: monitor, onOpenSettings: {}))
             let size = host.fittingSize
             XCTAssertEqual(size.width, 350, accuracy: 1)
@@ -246,7 +256,7 @@ final class UnreadStateTests: XCTestCase {
         XCTAssertTrue(empty.apps.isEmpty, "An empty selection must survive restarting")
         monitor.setEnabled(true, for: telegram)
         XCTAssertEqual(monitor.apps.map(\.id), [telegram.id])
-        XCTAssertEqual(monitor.apps.first?.state, .unknown("等待检测"), "Re-enabling must not reuse an old count")
+        XCTAssertEqual(monitor.apps.first?.state, .unknown(String(localized: "Waiting for a check")), "Re-enabling must not reuse an old count")
         monitor.setEnabled(false, for: ChatApp(id: "unsupported", name: "Unsupported"))
         XCTAssertEqual(defaults.stringArray(forKey: "disabledAppIDs"), ChatApp.supported.filter { $0.id != telegram.id }.map(\.id).sorted())
     }
@@ -275,7 +285,7 @@ final class UnreadStateTests: XCTestCase {
         let delegate = AppDelegate()
         defer { delegate.monitor.stop(); delegate.settingsWindow.close() }
         let window = delegate.settingsWindow
-        XCTAssertEqual(window.title, "设置 · Msgbox")
+        XCTAssertEqual(window.title, String(localized: "Settings · Msgbox"))
         XCTAssertFalse(window.isReleasedWhenClosed)
         guard let host = window.contentViewController as? NSHostingController<SettingsView> else {
             return XCTFail("Settings must use the native settings view")
@@ -295,7 +305,7 @@ final class UnreadStateTests: XCTestCase {
         let monitor = Monitor()
         defer { monitor.stop() }
         monitor.open(ChatApp(id: "invalid.msgbox.test.missing-app", name: "Test"))
-        XCTAssertEqual(monitor.notice, "Test 未安装或系统无法定位它。")
+        XCTAssertEqual(monitor.notice, String(localized: "\("Test") is missing or macOS could not locate it."))
     }
 
     @MainActor
@@ -304,7 +314,7 @@ final class UnreadStateTests: XCTestCase {
         defer { delegate.monitor.stop(); delegate.listWindow.close() }
         let window = delegate.listWindow
         XCTAssertTrue(window === delegate.listWindow)
-        XCTAssertEqual(window.title, "聊天未读 · Msgbox")
+        XCTAssertEqual(window.title, String(localized: "Unread Chats · Msgbox"))
         XCTAssertTrue(window.styleMask.contains(.closable))
         XCTAssertFalse(window.isReleasedWhenClosed)
         guard let host = window.contentViewController as? NSHostingController<PopoverView> else {

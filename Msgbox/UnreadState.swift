@@ -6,25 +6,26 @@ enum UnreadState: Equatable, Sendable {
     var hasUnread: Bool { if case .unread = self { return true }; return false }
     var label: String {
         switch self {
-        case .clear: return "0 条未读（无角标）"
-        case .unread(let count): return count.map { "\($0) 条未读" } ?? "有未读"
-        case .notInstalled: return "未安装"
-        case .notRunning: return "未运行"
-        case .permissionRequired: return "需要辅助功能权限"
-        case .unknown(let reason): return "未知：\(reason)"
+        case .clear: return String(localized: "0 unread (no badge)")
+        case .unread(let count):
+            return count.map { count in String(localized: "\(count) unread") } ?? String(localized: "Unread activity")
+        case .notInstalled: return String(localized: "Not installed")
+        case .notRunning: return String(localized: "Not running")
+        case .permissionRequired: return String(localized: "Accessibility permission required")
+        case .unknown(let reason): return String(localized: "Unknown: \(reason)")
         }
     }
 
     static func badge(_ value: String?) -> Self {
-        guard let value else { return .unknown("Dock 未提供角标属性") }
+        guard let value else { return .unknown(String(localized: "Dock did not expose a badge attribute")) }
         let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.isEmpty { return .clear }
         if ["•", "●", "!"].contains(text) { return .unread(nil) }
         let lowerBound = text.hasSuffix("+")
         let digits = lowerBound ? String(text.dropLast()) : text
         guard !digits.isEmpty, digits.utf8.allSatisfy({ (48...57).contains($0) }),
-              let count = Int(digits) else { return .unknown("无法识别角标格式") }
-        if lowerBound { return count > 0 ? .unread(nil) : .unknown("无法识别角标格式") }
+              let count = Int(digits) else { return .unknown(String(localized: "Unrecognized badge format")) }
+        if lowerBound { return count > 0 ? .unread(nil) : .unknown(String(localized: "Unrecognized badge format")) }
         return count == 0 ? .clear : .unread(count)
     }
 

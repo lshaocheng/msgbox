@@ -1,0 +1,566 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ is missing or macOS could not locate it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 未安装或系统无法定位它。"
+          }
+        }
+      }
+    },
+    "%@, %@, open app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，%@，打开应用"
+          }
+        }
+      }
+    },
+    "%lld unread": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条未读"
+          }
+        }
+      }
+    },
+    "0 unread (no badge)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 条未读（无角标）"
+          }
+        }
+      }
+    },
+    "0 unread (no numeric badge)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 条未读（无数字角标）"
+          }
+        }
+      }
+    },
+    "About Msgbox": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于 Msgbox"
+          }
+        }
+      }
+    },
+    "Accessibility access denied": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辅助功能访问被拒绝"
+          }
+        }
+      }
+    },
+    "Accessibility granted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辅助功能已授权"
+          }
+        }
+      }
+    },
+    "Accessibility permission required": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要辅助功能权限"
+          }
+        }
+      }
+    },
+    "App icon missing from the Dock": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 中未找到应用图标"
+          }
+        }
+      }
+    },
+    "Apps to Monitor": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "软件筛选"
+          }
+        }
+      }
+    },
+    "Asked macOS to open %@. The app controls which window appears.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已请求打开或重新显示%@。窗口响应由聊天应用决定。"
+          }
+        }
+      }
+    },
+    "Choose apps to monitor in Settings.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未选择软件，请在设置中勾选要统计的应用。"
+          }
+        }
+      }
+    },
+    "Could not change Launch at Login: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法更改登录时启动：%@"
+          }
+        }
+      }
+    },
+    "Could not open %@. Check the app in Finder.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开%@，请从 Finder 检查应用。"
+          }
+        }
+      }
+    },
+    "Could not open System Settings. Open Privacy & Security → Accessibility and enable Msgbox.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开系统设置。请手动前往“系统设置 → 隐私与安全性 → 辅助功能”，开启 Msgbox。"
+          }
+        }
+      }
+    },
+    "Could not read Dock badge": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 角标不可读取"
+          }
+        }
+      }
+    },
+    "Counts come from Dock badges. + means incomplete and ? means unknown. Dots and badges like 99+ give no exact count.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数量来自各应用的 Dock 角标；+ 表示合计不完整，? 表示未知。圆点或 99+ 无法提供精确数量；无角标属性时无法确认未读状态。"
+          }
+        }
+      }
+    },
+    "Dock did not expose a badge attribute": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 未提供角标属性"
+          }
+        }
+      }
+    },
+    "Dock does not support reading badges": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 不支持角标读取"
+          }
+        }
+      }
+    },
+    "Dock unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dock 不可用"
+          }
+        }
+      }
+    },
+    "Enable Msgbox in Privacy & Security → Accessibility, then return here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在“隐私与安全性 → 辅助功能”中开启 Msgbox，返回后会自动检测。"
+          }
+        }
+      }
+    },
+    "Enable Msgbox in System Settings, then return here.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在系统设置中开启 Msgbox，返回后会自动检测。"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用"
+          }
+        }
+      }
+    },
+    "If access still appears off, quit and reopen Msgbox.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "若系统尚未使授权生效，请退出并重新打开 Msgbox。"
+          }
+        }
+      }
+    },
+    "Launch at Login": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录时启动"
+          }
+        }
+      }
+    },
+    "Launch at login is awaiting approval.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自启动等待系统批准"
+          }
+        }
+      }
+    },
+    "Monitoring paused": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停监控"
+          }
+        }
+      }
+    },
+    "Msgbox %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Msgbox %@"
+          }
+        }
+      }
+    },
+    "Msgbox uses Accessibility to read Dock badges. Chat content stays private.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于读取所选软件的 Dock 未读角标，不读取聊天内容，也不需要录屏、全盘访问或通知权限。"
+          }
+        }
+      }
+    },
+    "Msgbox works offline. It reads Dock badge metadata through Accessibility and keeps no count history.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全离线，仅读取 Dock 角标元数据，不读取聊天内容，也不保存未读数量历史。角标检测需要辅助功能权限。"
+          }
+        }
+      }
+    },
+    "Not checked": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未检测"
+          }
+        }
+      }
+    },
+    "Not installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安装"
+          }
+        }
+      }
+    },
+    "Not running": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未运行"
+          }
+        }
+      }
+    },
+    "Only selected apps appear in the list and count toward the total. Choices are saved on this Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读取、统计和显示勾选的软件。选择自动保存在本机，可随时更改。"
+          }
+        }
+      }
+    },
+    "Open Accessibility Settings…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前往辅助功能设置…"
+          }
+        }
+      }
+    },
+    "Open Login Items Settings…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开登录项设置…"
+          }
+        }
+      }
+    },
+    "Open Msgbox from Applications before enabling Launch at Login.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先从“应用程序”文件夹打开 Msgbox，再设置登录时启动。"
+          }
+        }
+      }
+    },
+    "Open or switch to %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开或切换到%@"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权限"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        }
+      }
+    },
+    "Refresh unread status": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新未读状态"
+          }
+        }
+      }
+    },
+    "See WeChat, QQ, Telegram, and Discord Dock badges in the menu bar. Click an app to open it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将微信、QQ、Telegram 和 Discord 的 Dock 未读角标汇总到菜单栏，点击列表即可打开对应软件。"
+          }
+        }
+      }
+    },
+    "Settings · Msgbox": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置 · Msgbox"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置…"
+          }
+        }
+      }
+    },
+    "Total %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合计 %@"
+          }
+        }
+      }
+    },
+    "Unknown: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知：%@"
+          }
+        }
+      }
+    },
+    "Unread Chats": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聊天未读"
+          }
+        }
+      }
+    },
+    "Unread Chats · Msgbox": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聊天未读 · Msgbox"
+          }
+        }
+      }
+    },
+    "Unread activity": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有未读"
+          }
+        }
+      }
+    },
+    "Unread badge total: %@. + means incomplete and ? means unknown. Open for details.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读角标总数：%@；+ 表示数量不完整，? 表示数量未知；展开查看各应用"
+          }
+        }
+      }
+    },
+    "Unread chats, total %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聊天未读，合计 %@"
+          }
+        }
+      }
+    },
+    "Unrecognized badge format": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法识别角标格式"
+          }
+        }
+      }
+    },
+    "Updated at %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新于 %@"
+          }
+        }
+      }
+    },
+    "Waiting for a check": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待检测"
+          }
+        }
+      }
+    },
+    "WeChat": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

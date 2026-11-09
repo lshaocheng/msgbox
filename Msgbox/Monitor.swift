@@ -7,13 +7,13 @@ struct ChatApp: Identifiable {
     let id: String
     let name: String
     var url: URL?
-    var state: UnreadState = .unknown("等待检测")
+    var state: UnreadState = .unknown(String(localized: "Waiting for a check"))
     var icon: NSImage?
     var stateLabel: String {
-        id == "com.hnc.Discord" && state == .clear ? "0 条未读（无数字角标）" : state.label
+        id == "com.hnc.Discord" && state == .clear ? String(localized: "0 unread (no numeric badge)") : state.label
     }
 
-    @MainActor static let supported = [ChatApp(id: "com.tencent.xinWeChat", name: "微信"),
+    @MainActor static let supported = [ChatApp(id: "com.tencent.xinWeChat", name: String(localized: "WeChat")),
                                       ChatApp(id: "com.tencent.qq", name: "QQ"),
                                       ChatApp(id: "com.tdesktop.Telegram", name: "Telegram"),
                                       ChatApp(id: "com.hnc.Discord", name: "Discord")]
@@ -160,7 +160,7 @@ final class Monitor: ObservableObject {
 
     func open(_ app: ChatApp) {
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.id) else {
-            notice = "\(app.name) 未安装或系统无法定位它。"
+            notice = String(localized: "\(app.name) is missing or macOS could not locate it.")
             discoveryDate = .distantPast
             refresh()
             return
@@ -171,7 +171,7 @@ final class Monitor: ObservableObject {
         configuration.createsNewApplicationInstance = false
         NSWorkspace.shared.openApplication(at: url, configuration: configuration) { [weak self] _, error in
             Task { @MainActor in
-                self?.notice = error == nil ? "已请求打开或重新显示\(app.name)。窗口响应由聊天应用决定。" : "无法打开\(app.name)，请从 Finder 检查应用。"
+                self?.notice = error == nil ? String(localized: "Asked macOS to open \(app.name). The app controls which window appears.") : String(localized: "Could not open \(app.name). Check the app in Finder.")
                 self?.discoveryDate = .distantPast
                 self?.refresh()
             }
@@ -183,9 +183,9 @@ final class Monitor: ObservableObject {
         trusted = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
         let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility")!
         if NSWorkspace.shared.open(url) {
-            notice = "请在“隐私与安全性 → 辅助功能”中开启 Msgbox，返回后会自动检测。"
+            notice = String(localized: "Enable Msgbox in Privacy & Security → Accessibility, then return here.")
         } else {
-            notice = "无法打开系统设置。请手动前往“系统设置 → 隐私与安全性 → 辅助功能”，开启 Msgbox。"
+            notice = String(localized: "Could not open System Settings. Open Privacy & Security → Accessibility and enable Msgbox.")
         }
     }
 
@@ -193,14 +193,14 @@ final class Monitor: ObservableObject {
 
     func setLaunchAtLogin(_ enabled: Bool) {
         guard !enabled || Bundle.main.bundleURL.path.hasPrefix("/Applications/") else {
-            notice = "请先从“应用程序”文件夹打开 Msgbox，再设置登录时启动。"
+            notice = String(localized: "Open Msgbox from Applications before enabling Launch at Login.")
             return
         }
         do {
             if enabled { try SMAppService.mainApp.register() }
             else { try SMAppService.mainApp.unregister() }
             notice = nil
-        } catch { notice = "无法更改登录时启动：\(error.localizedDescription)" }
+        } catch { notice = String(localized: "Could not change Launch at Login: \(error.localizedDescription)") }
         refreshLoginStatus()
     }
 

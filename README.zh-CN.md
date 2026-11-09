@@ -20,7 +20,7 @@
 
 ## 快速开始
 
-**需要 macOS 26 或更新版本，以及 Xcode 26 或更新版本。** 当前预览版通过源码构建使用，界面为简体中文。
+**需要 macOS 26 或更新版本，以及 Xcode 26 或更新版本。** 当前预览版通过源码构建使用。界面支持简体中文和英文，默认跟随 macOS 语言偏好。如需单独设置 Msgbox，请在 **系统设置 → 通用 → 语言与地区 → 应用程序** 中添加它，选择语言后重新打开。
 
 1. 克隆本仓库，或在 GitHub 页面选择 **Code → Download ZIP**，下载后解压。
 2. 用 Xcode 打开 `Msgbox.xcodeproj`，选择 **Msgbox → My Mac**，按 **⌘R**。Debug 版使用本地临时签名，无需 Apple Developer 签名证书。
@@ -97,4 +97,4 @@ Debug 应用位于 `build/Build/Products/Debug/Msgbox.app`。[人工验收清单
 
 ## 许可证
 
-本仓库尚未添加开源许可证。
+Msgbox 采用 [MIT 许可证](LICENSE)。

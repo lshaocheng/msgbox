@@ -20,12 +20,12 @@ If you use WeChat for one group, QQ for another, and Telegram or Discord for the
 
 ## Get started
 
-**You need macOS 26 or later and Xcode 26 or later.** This preview is available as a source build. The app interface is currently in Simplified Chinese.
+**You need macOS 26 or later and Xcode 26 or later.** This preview is available as a source build. The app supports English and Simplified Chinese and follows your macOS language preferences. To change only Msgbox, add it under **System Settings → General → Language & Region → Applications**, choose a language, and relaunch it.
 
 1. Clone this repository or choose **Code → Download ZIP** on GitHub and unzip it.
 2. Open `Msgbox.xcodeproj` in Xcode, select **Msgbox → My Mac**, and press **⌘R**. The Debug build uses local ad-hoc signing and needs no Apple Developer signing certificate.
-3. In Msgbox, click **前往辅助功能设置…** (Open Accessibility Settings). Under **System Settings → Privacy & Security → Accessibility**, enable the copy you are running, **Msgbox Debug** for the Xcode build. Return to Msgbox. If macOS has yet to apply the permission, quit and reopen that copy.
-4. Open one of the supported chat apps. Click the chat bubbles in the menu bar to see its badge. In **设置… → 软件筛选** (Settings → App selection), choose the apps you want to include. Msgbox remembers your choices locally.
+3. In Msgbox, click **Open Accessibility Settings…**. Under **System Settings → Privacy & Security → Accessibility**, enable the copy you are running, **Msgbox Debug** for the Xcode build. Return to Msgbox. If macOS has yet to apply the permission, quit and reopen that copy.
+4. Open one of the supported chat apps. Click the chat bubbles in the menu bar to see its badge. In **Settings… → Apps to Monitor**, choose the apps you want to include. Msgbox remembers your choices locally.
 
 You can close the list window and keep using the menu bar. For a locally signed install in Applications and the optional launch-at-login setting, see [Local installation](#local-installation).
 
@@ -60,7 +60,7 @@ Accessibility is a broad macOS permission. You grant it to Msgbox so it can quer
 - **An app shows `?` or reports an unknown status.** Check that it is running, its icon is in the Dock, and Accessibility is enabled for the exact Msgbox build you opened. The Dock attribute Msgbox reads, `AXStatusLabel`, is undocumented and may behave differently across macOS or chat app versions.
 - **Telegram shows a number elsewhere but has no Dock badge.** Check **System Settings → Notifications → Telegram** and enable notifications and application icon badges. Msgbox reads the Dock icon. Banners and sounds are optional.
 - **Discord has unread activity but the total stays the same.** Enable unread badges in **Discord → User Settings → Notifications** and application icon badges in macOS if available. Only an exact number in the Dock contributes to the total.
-- **To uninstall.** If you enabled **登录时启动** (Launch at login), turn it off in Msgbox settings. Quit Msgbox, remove its entry from **Accessibility**, and delete the copy you ran.
+- **To uninstall.** If you enabled **Launch at Login**, turn it off in Msgbox settings. Quit Msgbox, remove its entry from **Accessibility**, and delete the copy you ran.
 
 ## Local installation
 
@@ -73,7 +73,7 @@ open /Applications/Msgbox.app
 
 The installer builds Release, checks that the update satisfies the installed copy's signing requirements, and backs up the previous app to `build/installed-backups/`. If multiple signing identities are present, set `MSGBOX_SIGNING_IDENTITY` to the intended certificate's 40-character fingerprint. For a one-time upgrade from an older ad-hoc installation, use `python3 scripts/install.py --migrate-signature` and be prepared to grant Accessibility again.
 
-The local installer produces an Apple Development build for your own Mac. Public distribution would require a separate Developer ID signing and notarization workflow. Once opened from Applications, Msgbox can be set to launch at login in **设置… → 通用** (Settings → General).
+The local installer produces an Apple Development build for your own Mac. Public distribution would require a separate Developer ID signing and notarization workflow. Once opened from Applications, Msgbox can be set to launch at login in **Settings… → General**.
 
 ## Contribute
 
@@ -97,4 +97,4 @@ The Debug app is at `build/Build/Products/Debug/Msgbox.app`. The [manual accepta
 
 ## License
 
-An open-source license has yet to be added to this repository.
+Msgbox is available under the [MIT License](LICENSE).
